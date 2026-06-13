@@ -34,6 +34,17 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
 - **`debug.zsh`** — `inspect`, a one-call dump of a variable, array, or
   associative array.
 
+## Testing
+
+```zsh
+just test                    # run the whole suite
+zsh test/test-log.zsh        # or run one file directly
+```
+
+Tests live in `test/`; the `test/manual/` scripts are fixtures the automated
+tests invoke (and can also be run by hand). Each test locates the library
+relative to its own path, so the suite runs from anywhere.
+
 ## Status
 
 Lifted out of my dotfiles, where it lives as a submodule. The pieces are now
