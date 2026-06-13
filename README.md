@@ -34,6 +34,26 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
 - **`debug.zsh`** — `inspect`, a one-call dump of a variable, array, or
   associative array.
 
+## Dry-run
+
+`argparse/n.zsh` adds `-n`/`--dry-run` and sets `MODE_DRY_RUN=1` — but it can't
+know which lines are destructive, so guard the side effects yourself:
+
+```zsh
+if (( MODE_DRY_RUN )); then
+    log_info "Would remove $f"
+else
+    rm "$f"
+fi
+```
+
+`(( MODE_DRY_RUN ))` is false when the flag is absent (an unset variable is
+arithmetic zero) and true once `n.zsh` sets it, so it needs no default; the
+short form `(( MODE_DRY_RUN )) && exit 0` bails early. And because the `log_*`
+family prefixes `[DRY_RUN]` to every line whenever `MODE_DRY_RUN` is set, a dry
+run reads back as a labeled transcript of what a real run would do — no extra
+wiring.
+
 ## Testing
 
 ```zsh
