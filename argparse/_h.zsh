@@ -1,4 +1,4 @@
-source $ZDOTDIR/the-usual/utils.zsh
+source ${${(%):-%x}:A:h:h}/utils.zsh
 
 OPTIONS_DESCRIPTION+=("-h, --help" "Print this help message")
 EXIT_CODES_DESCRIPTION[2]="Wrong usage"

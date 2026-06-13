@@ -12,14 +12,19 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
   verbosity, and `-y`/`--yes`:
 
   ```zsh
-  source $ZDOTDIR/the-usual/argparse/_init.zsh  # expands -abc to -a -b -c
-  source $ZDOTDIR/the-usual/argparse/n.zsh      # -n  (dry run)
-  source $ZDOTDIR/the-usual/argparse/qv.zsh     # -q/-v + the log_* family
-  source $ZDOTDIR/the-usual/argparse/_h.zsh     # -h  (help) — must be last
+  source /path/to/the-usual/argparse/_init.zsh  # expands -abc to -a -b -c
+  source /path/to/the-usual/argparse/n.zsh      # -n  (dry run)
+  source /path/to/the-usual/argparse/qv.zsh     # -q/-v + the log_* family
+  source /path/to/the-usual/argparse/_h.zsh     # -h  (help) — must be last
   ```
 
-  (`utils.zsh` is its one shared dependency; `qv.zsh` also provides the
-  severity-colored, script-name-prefixed, stderr-bound `log_*` functions.)
+  (`utils.zsh` and `log.zsh` are the shared dependencies; each module pulls in
+  what it needs relative to its own location, so you only source the entry
+  files above. `qv.zsh` layers `-q`/`-v` on top of the `log_*` family.)
+- **`log.zsh`** — the severity-colored, script-name-prefixed, stderr-bound
+  `log_*` family (success/info/warning/error/fatal, each with verbosity-gated
+  `_v`/`_vv` variants) plus `mkdir_v`/`mv_v` wrappers. Source it directly for
+  logging without the `-q`/`-v` flag parsing.
 - **`concurrency.zsh`** — `wait_if_too_many_jobs`, a bounded job pool that
   caps background jobs at twice the CPU count.
 - **`mutex.zsh`** — `mutex` / `try_mutex`, a lock held by a coprocess so it
@@ -31,11 +36,12 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
 
 ## Status
 
-First cut: a straight lift out of my dotfiles. The files still source one
-another by `$ZDOTDIR/the-usual/...`, so for now they assume a checkout at that
-path (it's a submodule of my dotfiles), and the concurrency/mutex helpers
-assume `argparse/qv.zsh` is sourced for their `log_*` calls. Making the pieces
-path-independent and standalone is the next step.
+Lifted out of my dotfiles, where it lives as a submodule. The pieces are now
+path-independent: each file resolves its siblings relative to its own location
+(via `${${(%):-%x}:A:h}`), so you can drop the checkout anywhere and source any
+single file by its path — it pulls in what it needs. The concurrency and mutex
+helpers source `log.zsh` themselves, so they no longer assume the argparse
+flags were sourced first.
 
 ## License
 

@@ -1,6 +1,4 @@
 # Portable wrappers for GNU vs BSD coreutils differences
-#
-# Usage: source $ZDOTDIR/the-usual/coreutils.zsh
 
 # Detect GNU vs BSD coreutils once at source time
 if stat --version &>/dev/null 2>&1; then

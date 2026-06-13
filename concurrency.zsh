@@ -1,3 +1,5 @@
+source ${${(%):-%x}:A:h}/log.zsh  # log_warning_vvv
+
 if (( $+commands[nproc] )); then
     MAX_CONCURRENCY=$(( $(nproc --all) * 2 ))
 else

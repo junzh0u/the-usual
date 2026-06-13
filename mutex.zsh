@@ -1,3 +1,5 @@
+source ${${(%):-%x}:A:h}/log.zsh  # log_info_v, log_fatal
+
 # Internal helper for mutex acquisition
 # Returns 0 on success, 1 on failure
 # Sets MUTEX and holder_pid variables in caller's scope
