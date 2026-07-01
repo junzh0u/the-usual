@@ -19,7 +19,7 @@ dotfiles repo.
   order (see below).
 - `log.zsh` — the `log_*` family + `mkdir_v`/`mv_v` verbosity wrappers. No
   argument parsing.
-- `utils.zsh` — `current_script_name`, `glob_exists`.
+- `utils.zsh` — `current_script_name`, `glob_exists`, `require_env`.
 - `concurrency.zsh` — `wait_if_too_many_jobs`, a bounded job pool.
 - `mutex.zsh` — `mutex` / `try_mutex`, a coprocess-held lock.
 - `coreutils.zsh` — portable GNU-vs-BSD wrappers (`file_size`, `file_mtime`,
