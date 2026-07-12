@@ -17,15 +17,15 @@ function _mutex_acquire {
     # Uses lockf (macOS/BSD) or flock (Linux).
     if (( $+commands[lockf] )); then
         if [[ -n $timeout ]]; then
-            coproc lockf -st $timeout $MUTEX sh -c "echo ready; read"
+            coproc lockf -st $timeout $MUTEX sh -c "echo ready; read line"
         else
-            coproc lockf -s $MUTEX sh -c "echo ready; read"
+            coproc lockf -s $MUTEX sh -c "echo ready; read line"
         fi
     elif (( $+commands[flock] )); then
         if [[ -n $timeout ]]; then
-            coproc flock -w $timeout $MUTEX sh -c "echo ready; read"
+            coproc flock -w $timeout $MUTEX sh -c "echo ready; read line"
         else
-            coproc flock $MUTEX sh -c "echo ready; read"
+            coproc flock $MUTEX sh -c "echo ready; read line"
         fi
     else
         log_fatal "Neither lockf nor flock found"
