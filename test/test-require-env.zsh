@@ -27,7 +27,7 @@ assert_ok() {   # description, VAR...
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected success)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -35,7 +35,7 @@ assert_fatal() {  # description, VAR...
     local description=$1; shift
     if ( require_env $@ ) 2>/dev/null; then
         log_error "FAIL: $description (expected fatal exit)"
-        (( failures++ ))
+        (( ++failures ))
     else
         log_info "PASS: $description"
     fi
@@ -69,7 +69,7 @@ if [[ $msg == *MISS_ONE* && $msg == *MISS_TWO* ]]; then
     log_info "PASS: message lists every missing var"
 else
     log_error "FAIL: message missing a var name (got: $msg)"
-    (( failures++ ))
+    (( ++failures ))
 fi
 
 # ── Summary ─────────────────────────────────────────────────────────

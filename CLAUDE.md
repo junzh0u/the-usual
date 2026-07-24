@@ -142,3 +142,9 @@ assertions in sync if you rename a test file.
 - `local var` with no assignment, re-run for an already-set var in the same
   scope (e.g. a loop body), keeps the stale value *and* echoes `var='stale'` to
   stdout. Always assign: `local -a arr=()`, `local x=`.
+- `(( n++ ))` as a statement evaluates to the *old* value, so incrementing a
+  counter from 0 exits **1**. Under `setopt err_exit` — which every test here
+  sets — that aborts the run without printing anything, so `(( failures++ ))`
+  swallows the first failing assertion and everything after it. Use
+  `(( ++n ))`, which evaluates to the new value and stays truthy while counting
+  up.

@@ -26,7 +26,7 @@ assert_yes() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected yes)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -37,7 +37,7 @@ assert_no() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected no)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -76,7 +76,7 @@ if [[ $output == *YES* ]]; then
     log_info "PASS: -y flag makes yes_or_no return true"
 else
     log_error "FAIL: -y flag did not make yes_or_no return true"
-    (( failures++ ))
+    (( ++failures ))
 fi
 
 # ── Test 4: Interactive prompt via expect ───────────────────────────
@@ -103,7 +103,7 @@ if [[ $output == *RESULT:YES* ]]; then
     log_info "PASS: typing 'y' at interactive prompt returns true"
 else
     log_error "FAIL: typing 'y' at interactive prompt did not return true"
-    (( failures++ ))
+    (( ++failures ))
 fi
 
 output=$(expect_yes_or_no n)
@@ -111,7 +111,7 @@ if [[ $output == *RESULT:NO* ]]; then
     log_info "PASS: typing 'n' at interactive prompt returns false"
 else
     log_error "FAIL: typing 'n' at interactive prompt did not return false"
-    (( failures++ ))
+    (( ++failures ))
 fi
 
 # ── Summary ─────────────────────────────────────────────────────────

@@ -28,7 +28,7 @@ assert_exists() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected match for: $pattern)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -38,7 +38,7 @@ assert_not_exists() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (unexpected match for: $pattern)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 

@@ -28,7 +28,7 @@ assert() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description ($condition)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -115,7 +115,7 @@ assert "P2 completed after signal handoff" "${p2_released:-0} > 0"
 # P1 should NOT have a "released" line (it was killed)
 if grep -q "P1 released" "$log2"; then
     log_error "FAIL: P1 logged release after being killed"
-    (( failures++ ))
+    (( ++failures ))
 else
     log_info "PASS: P1 did not log release (killed as expected)"
 fi

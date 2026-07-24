@@ -25,7 +25,7 @@ assert_contains() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected: $pattern)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -35,7 +35,7 @@ assert_not_contains() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (unexpected: $pattern)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
@@ -45,7 +45,7 @@ assert_exit_code() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected exit $expected, got $actual)"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 

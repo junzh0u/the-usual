@@ -23,7 +23,7 @@ assert_eq() {
         log_info "PASS: $description"
     else
         log_error "FAIL: $description (expected '$expected', got '$actual')"
-        (( failures++ ))
+        (( ++failures ))
     fi
 }
 
