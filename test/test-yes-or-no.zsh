@@ -83,6 +83,10 @@ fi
 
 log_info "── Test 4: Interactive prompt ──"
 
+if ! (( $+commands[expect] )); then
+    log_warning "Skipping interactive prompt tests (no expect binary)"
+else
+
 expect_yes_or_no() {
     local key=$1
     expect -c "
@@ -113,6 +117,7 @@ else
     log_error "FAIL: typing 'n' at interactive prompt did not return false"
     (( ++failures ))
 fi
+fi  # $+commands[expect]
 
 # ── Summary ─────────────────────────────────────────────────────────
 

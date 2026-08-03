@@ -30,19 +30,30 @@ function format_epoch {
 # Parse an ISO-8601 datetime string and reformat in local timezone
 # Usage: parse_date "2026-03-29T22:39:08+00:00" [format]
 # Default format: %Y-%m-%d %H:%M:%S %Z
-# Accepts ±HH:MM / ±HHMM offsets and a trailing Z (normalized below —
-# strptime %z takes only ±HHMM); strftime -r honors the parsed offset,
-# verified epoch-identical to GNU date on macOS and Synology zsh.
+# Accepts ±HH:MM / ±HHMM offsets and a trailing Z.
+# The one helper that still forks date(1): zsh's strftime -r parses %z but
+# the glibc mktime path IGNORES the offset (wrong epoch for non-local input
+# on Ubuntu; macOS and Synology's static zsh honor it) — so the builtin
+# can't be trusted here.
 function parse_date {
     local input=$1
     local fmt=${2:-'%Y-%m-%d %H:%M:%S %Z'}
-    local epoch=
-    [[ $input == *Z ]] && input=${input%Z}+0000
-    if [[ $input == *[+-][0-9][0-9]:[0-9][0-9] ]]; then
-        input=${input[1,-4]}${input[-2,-1]}  # drop the colon in ±HH:MM
+    if [[ -z $_COREUTILS_DATE_FLAVOR ]]; then  # lazy, cached per shell
+        if date --version &>/dev/null; then
+            typeset -g _COREUTILS_DATE_FLAVOR=gnu
+        else
+            typeset -g _COREUTILS_DATE_FLAVOR=bsd
+        fi
     fi
-    strftime -rs epoch "%Y-%m-%dT%H:%M:%S%z" "$input" 2>/dev/null || return 1
-    strftime "$fmt" "$epoch"
+    if [[ $_COREUTILS_DATE_FLAVOR == gnu ]]; then
+        date -d "$input" "+$fmt" 2>/dev/null
+    else
+        [[ $input == *Z ]] && input=${input%Z}+0000
+        if [[ $input == *[+-][0-9][0-9]:[0-9][0-9] ]]; then
+            input=${input[1,-4]}${input[-2,-1]}  # strptime %z takes only ±HHMM
+        fi
+        date -jf "%Y-%m-%dT%H:%M:%S%z" "$input" "+$fmt" 2>/dev/null
+    fi
 }
 
 # Get epoch seconds for N hours/days ago — pure arithmetic on $EPOCHSECONDS

@@ -90,7 +90,9 @@ assert_eq "non-local offset honored" \
 log_info "── Test 4: invalid inputs ──"
 
 assert_fails "file_size on missing file"   file_size /nonexistent/file
-assert_fails "parse_date on a bare date"   parse_date 2026-03-29
+# (a bare date like 2026-03-29 is flavor-dependent: GNU date parses it,
+# BSD's pinned strptime format rejects it — assert only on real garbage)
+assert_fails "parse_date on garbage"       parse_date not-a-date
 assert_fails "epoch_hours_ago on garbage"  epoch_hours_ago abc
 
 # ── Summary ─────────────────────────────────────────────────────────

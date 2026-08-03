@@ -95,8 +95,9 @@ and `mutex.zsh` do this, and so do the tests here.
 
 ## Module gotchas
 
-- **`coreutils.zsh`** — all helpers are zsh builtins (`zsh/stat`, `zsh/datetime`),
-  no fork per call. `parse_date` is pinned to ISO-8601 input (±HH:MM/±HHMM/Z);
+- **`coreutils.zsh`** — helpers are zsh builtins (`zsh/stat`, `zsh/datetime`),
+  no fork per call — except `parse_date` (ISO-8601 input only), which forks
+  `date(1)`: glibc's `strftime -r` ignores the parsed `%z` offset.
   `epoch_*_ago` subtract fixed 3600/86400-second units, not calendar days.
 - **`concurrency.zsh`** — after each `&`, call `wait_if_too_many_jobs`; finish
   with `wait`. `MAX_CONCURRENCY = 2 × ncpu`.
