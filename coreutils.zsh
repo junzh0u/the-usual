@@ -1,30 +1,21 @@
-# Portable wrappers for GNU vs BSD coreutils differences
+# Fork-free file and time helpers, backed by zsh builtins (zsh/stat,
+# zsh/datetime) — no subprocess per call. The file once wrapped GNU-vs-BSD
+# stat(1)/date(1) flag differences, hence the name, kept for consumers.
 
-# Detect GNU vs BSD coreutils once at source time
-if stat --version &>/dev/null 2>&1; then
-    _COREUTILS_FLAVOR=gnu
-else
-    _COREUTILS_FLAVOR=bsd
-fi
+zmodload -F zsh/stat b:zstat  # -F b:zstat only — a full zmodload would shadow
+                              # the external stat command with a stat builtin
+zmodload zsh/datetime         # $EPOCHSECONDS, strftime
 
 # Get file size in bytes
 # Usage: file_size /path/to/file
 function file_size {
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        stat -c %s "$1" 2>/dev/null
-    else
-        stat -f %z "$1" 2>/dev/null
-    fi
+    zstat +size -- "$1" 2>/dev/null
 }
 
 # Get file modification time as epoch seconds
 # Usage: file_mtime /path/to/file
 function file_mtime {
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        stat -c %Y "$1" 2>/dev/null
-    else
-        stat -f %m "$1" 2>/dev/null
-    fi
+    zstat +mtime -- "$1" 2>/dev/null
 }
 
 # Format epoch timestamp to human readable string
@@ -33,43 +24,38 @@ function file_mtime {
 function format_epoch {
     local epoch=$1
     local fmt=${2:-'%Y-%m-%d %H:%M:%S'}
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        date -d "@$epoch" "+$fmt" 2>/dev/null
-    else
-        date -r "$epoch" "+$fmt" 2>/dev/null
-    fi
+    strftime "$fmt" "$epoch" 2>/dev/null
 }
 
-# Parse a date string and reformat in local timezone
+# Parse an ISO-8601 datetime string and reformat in local timezone
 # Usage: parse_date "2026-03-29T22:39:08+00:00" [format]
 # Default format: %Y-%m-%d %H:%M:%S %Z
+# Accepts ±HH:MM / ±HHMM offsets and a trailing Z (normalized below —
+# strptime %z takes only ±HHMM); strftime -r honors the parsed offset,
+# verified epoch-identical to GNU date on macOS and Synology zsh.
 function parse_date {
     local input=$1
     local fmt=${2:-'%Y-%m-%d %H:%M:%S %Z'}
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        date -d "$input" "+$fmt" 2>/dev/null
-    else
-        date -jf "%Y-%m-%dT%H:%M:%S%z" "$input" "+$fmt" 2>/dev/null
+    local epoch=
+    [[ $input == *Z ]] && input=${input%Z}+0000
+    if [[ $input == *[+-][0-9][0-9]:[0-9][0-9] ]]; then
+        input=${input[1,-4]}${input[-2,-1]}  # drop the colon in ±HH:MM
     fi
+    strftime -rs epoch "%Y-%m-%dT%H:%M:%S%z" "$input" 2>/dev/null || return 1
+    strftime "$fmt" "$epoch"
 }
 
-# Get epoch seconds for a relative time
-# Usage: epoch_ago "1 hour ago"  (GNU) or epoch_ago "-1H" (BSD)
-# For portability, use epoch_hours_ago/epoch_days_ago instead
+# Get epoch seconds for N hours/days ago — pure arithmetic on $EPOCHSECONDS
+# (fixed 3600/86400-second units, unlike date(1)'s calendar-aware relative
+# dates; indistinguishable for the cutoff comparisons these serve)
 function epoch_hours_ago {
     local hours=${1:-1}
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        date +%s -d "$hours hours ago" 2>/dev/null
-    else
-        date -v-${hours}H +%s 2>/dev/null
-    fi
+    [[ $hours == <-> ]] || return 1
+    print $(( EPOCHSECONDS - hours * 3600 ))
 }
 
 function epoch_days_ago {
     local days=${1:-1}
-    if [[ $_COREUTILS_FLAVOR == gnu ]]; then
-        date +%s -d "$days days ago" 2>/dev/null
-    else
-        date -v-${days}d +%s 2>/dev/null
-    fi
+    [[ $days == <-> ]] || return 1
+    print $(( EPOCHSECONDS - days * 86400 ))
 }

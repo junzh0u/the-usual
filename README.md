@@ -29,7 +29,7 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
   caps background jobs at twice the CPU count.
 - **`mutex.zsh`** — `mutex` / `try_mutex`, a lock held by a coprocess so it
   releases on exit even on Ctrl-C, leaving no orphaned lock.
-- **`coreutils.zsh`** — portable wrappers over GNU-vs-BSD coreutils
+- **`coreutils.zsh`** — fork-free file/time helpers backed by zsh builtins
   differences (`file_size`, etc.).
 - **`debug.zsh`** — `inspect`, a one-call dump of a variable, array, or
   associative array.

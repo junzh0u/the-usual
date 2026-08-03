@@ -22,8 +22,8 @@ dotfiles repo.
 - `utils.zsh` — `current_script_name`, `glob_exists`, `require_env`.
 - `concurrency.zsh` — `wait_if_too_many_jobs`, a bounded job pool.
 - `mutex.zsh` — `mutex` / `try_mutex`, a coprocess-held lock.
-- `coreutils.zsh` — portable GNU-vs-BSD wrappers (`file_size`, `file_mtime`,
-  `format_epoch`, `parse_date`, `epoch_*_ago`).
+- `coreutils.zsh` — fork-free file/time helpers backed by zsh builtins
+  (`file_size`, `file_mtime`, `format_epoch`, `parse_date`, `epoch_*_ago`).
 - `debug.zsh` — `inspect`, a one-call dump of a var / array / assoc.
 - `test/` — automated tests; `test/manual/` fixtures.
 
@@ -95,9 +95,9 @@ and `mutex.zsh` do this, and so do the tests here.
 
 ## Module gotchas
 
-- **`coreutils.zsh`** — `parse_date`/`format_epoch`/`epoch_*_ago` fork `date(1)`
-  per call. In hot loops prefer `zmodload zsh/datetime` (`$EPOCHSECONDS`, builtin
-  `strftime`, `strftime -rs FMT STR` to reverse-parse a string to epoch).
+- **`coreutils.zsh`** — all helpers are zsh builtins (`zsh/stat`, `zsh/datetime`),
+  no fork per call. `parse_date` is pinned to ISO-8601 input (±HH:MM/±HHMM/Z);
+  `epoch_*_ago` subtract fixed 3600/86400-second units, not calendar days.
 - **`concurrency.zsh`** — after each `&`, call `wait_if_too_many_jobs`; finish
   with `wait`. `MAX_CONCURRENCY = 2 × ncpu`.
 - **`mutex.zsh`** — `mutex <name>` spawns a coprocess to hold the lock. If the
