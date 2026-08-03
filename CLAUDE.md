@@ -117,38 +117,9 @@ several `$VERBOSITY` levels); some are also runnable by hand. `test-current-scri
 and `test-log` assert on a script's own `current_script_name`, so keep those
 assertions in sync if you rename a test file.
 
-## Zsh coding style
+## Zsh style & runtime gotchas
 
-- **Variable naming:** `UPPER_CASE` for exported env vars and the argparse vars
-  (`FLAG_*`, `ARG_*`, `MODE_DRY_RUN`, `VERBOSITY`, `OPTIONS_DESCRIPTION`,
-  `ARGS_DESCRIPTION`, `EXIT_CODES_DESCRIPTION`); `lower_case` for everything else
-  (loop/temp/computed, e.g. `the_usual`). **Never** name a variable `path` — it
-  shadows zsh's `$path` (tied to `$PATH`). Use `local` inside functions.
-- **Quoting:** no quotes needed inside `[[ ]]` or around `$@` — zsh doesn't
-  word-split by default (`SH_WORD_SPLIT` off).
-- **Conditionals:** don't use `(( ))` to compare assoc-array values whose keys
-  may contain `;`/`/`/`:` — use `[[ ${arr[$key]} == $val ]]`. Avoid `A && B || C`
-  as an if/else substitute (`C` also runs when `B` fails); `A && var=x || var=y`
-  is fine since assignments don't fail.
-- **Dry-run checks:** `[[ -n $MODE_DRY_RUN ]]` / `[[ -z ]]`, never
-  `(( MODE_DRY_RUN ))` — arithmetic evaluation reads a hand-set non-numeric
-  value (`MODE_DRY_RUN=true`) as false, so the guards run wet while `log.zsh`
-  (which checks `[[ -n ]]`) still prints `[DRY_RUN]` on every line.
-- **Exit codes:** `EXIT_CODES_DESCRIPTION` (assoc) is rendered by `_h.zsh`;
-  assign custom codes starting at 10 before sourcing it. Use `wrong_usage "msg"`
-  for arg-validation errors (exit 2); `log_fatal "msg" <code>` for runtime
-  errors (defaults to 1).
+Canonical for this repo *and* its consumers, which import the file from their
+own agent instructions instead of copying the rules — imported here:
 
-## Zsh runtime gotchas
-
-- Scripts run non-interactively — `whence` can't see aliases/functions from an
-  interactive `.zshrc`.
-- `local var` with no assignment, re-run for an already-set var in the same
-  scope (e.g. a loop body), keeps the stale value *and* echoes `var='stale'` to
-  stdout. Always assign: `local -a arr=()`, `local x=`.
-- `(( n++ ))` as a statement evaluates to the *old* value, so incrementing a
-  counter from 0 exits **1**. Under `setopt err_exit` — which every test here
-  sets — that aborts the run without printing anything, so `(( failures++ ))`
-  swallows the first failing assertion and everything after it. Use
-  `(( ++n ))`, which evaluates to the new value and stays truthy while counting
-  up.
+@STYLE.md
