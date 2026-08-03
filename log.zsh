@@ -6,6 +6,11 @@
 # $MODE_DRY_RUN / $LOG_TIMESTAMP / $LOG_SCRIPT_NAME to decorate the header.
 # Severity colors apply only when stderr is a terminal and $NO_COLOR is unset
 # (https://no-color.org) — logs redirected to a file stay plain.
+#
+# One body, many names: each family below is a single function defined under
+# every generated name, dispatching on the name it was called by ($0) —
+# severity picks the color, the trailing _v/_vv/_vvv is the minimum $VERBOSITY
+# to print at.
 
 source ${${(%):-%x}:A:h}/utils.zsh
 
@@ -27,109 +32,28 @@ function _log_print {
     fi
 }
 
-# Success
-function log_success {
-    _log_print green $*
-}
-function _log_success_v {
-  (( VERBOSITY >= $1 )) || return 1
-  shift
-  log_success $*
-}
-function log_success_v {
-  _log_success_v 1 $*
-}
-function log_success_vv {
-  _log_success_v 2 $*
+function log_{success,info,warning,error} {
+    local -A colors=(log_success green log_info blue log_warning yellow log_error red)
+    _log_print $colors[$0] $*
 }
 
-# Info
-function log_info {
-    _log_print blue $*
-}
-function _log_info_v {
-  (( VERBOSITY >= $1 )) || return 1
-  shift
-  log_info $*
-}
-function log_info_v {
-  _log_info_v 1 $*
-}
-function log_info_vv {
-  _log_info_v 2 $*
+function log_{success,info,warning,error}_{v,vv,vvv} {
+    local vees=${0##*_}
+    (( VERBOSITY >= $#vees )) || return 1
+    ${0%_v*} $*
 }
 
-# Warning
-function log_warning {
-    _log_print yellow $*
-}
-function _log_warning_v {
-  (( VERBOSITY >= $1 )) || return 1
-  shift
-  log_warning $*
-}
-function log_warning_v {
-  _log_warning_v 1 $*
-}
-function log_warning_vv {
-  _log_warning_v 2 $*
-}
-function log_warning_vvv {
-  _log_warning_v 3 $*
-}
-
-# Error
-function log_error {
-    _log_print red $*
-}
-function _log_error_v {
-  (( VERBOSITY >= $1 )) || return 1
-  shift
-  log_error $*
-}
-function log_error_v {
-  _log_error_v 1 $*
-}
-function log_error_vv {
-  _log_error_v 2 $*
-}
-
-# Fatal
 function log_fatal {
-  log_error "$1"
-  [[ -n "$2" ]] && exit $2 || exit 1
+    log_error "$1"
+    [[ -n "$2" ]] && exit $2 || exit 1
 }
 
-# mkdir
-function mkdir_v {
-  if (( VERBOSITY >= 1 )); then
-    mkdir -v $@
-  else
-    mkdir $@
-  fi
-}
-
-function mkdir_vv {
-  if (( VERBOSITY >= 2 )); then
-    mkdir -v $@
-  else
-    mkdir $@
-  fi
-}
-
-# mv
-function mv_v {
-  if (( VERBOSITY >= 1 )); then
-    mv -v $@
-  else
-    mv $@
-  fi
-}
-
-function mv_vv {
-  if (( VERBOSITY >= 2 )); then
-    mv -v $@
-  else
-    mv $@
-  fi
+# mkdir/mv, announcing themselves (-v) at the matching verbosity
+function {mkdir,mv}_{v,vv} {
+    local vees=${0##*_}
+    if (( VERBOSITY >= $#vees )); then
+        ${0%_*} -v $@
+    else
+        ${0%_*} $@
+    fi
 }
