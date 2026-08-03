@@ -8,6 +8,7 @@
 #   3. At verbosity 2: _vv variants also appear
 #   4. log_fatal exits with the specified code
 #   5. Log output includes script name in brackets
+#   6. Color only when stderr is a TTY and NO_COLOR is unset
 
 setopt err_exit
 
@@ -123,6 +124,32 @@ assert_contains "log_fatal message shown" "$output" "log fatal and exit 42"
 log_info "── Test 5: Script name in output ──"
 
 assert_contains "output includes [test-log]" "$output" '\[test-log\]'
+
+# ── Test 6: color only when stderr is a TTY and NO_COLOR unset ──────
+
+log_info "── Test 6: conditional color ──"
+
+esc=$'\x1b'
+output=$(VERBOSITY=0 "$test_script" 2>&1) || true
+assert_not_contains "piped output has no ANSI" "$output" "$esc"
+
+# The TTY branches need a real pty — zsh's zpty module, portable where
+# script(1)'s BSD/GNU invocations differ.
+zmodload zsh/zpty
+read_pty() {
+    local name=$1 chunk= out=
+    while zpty -r $name chunk; do out+=$chunk; done
+    zpty -d $name
+    print -r -- $out
+}
+
+zpty log_tty env VERBOSITY=0 "$test_script"
+output=$(read_pty log_tty)
+assert_contains "tty output has ANSI" "$output" "$esc"
+
+zpty log_nocolor env NO_COLOR=1 VERBOSITY=0 "$test_script"
+output=$(read_pty log_nocolor)
+assert_not_contains "NO_COLOR suppresses ANSI on a tty" "$output" "$esc"
 
 # ── Summary ─────────────────────────────────────────────────────────
 
