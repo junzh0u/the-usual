@@ -130,6 +130,10 @@ assertions in sync if you rename a test file.
   may contain `;`/`/`/`:` — use `[[ ${arr[$key]} == $val ]]`. Avoid `A && B || C`
   as an if/else substitute (`C` also runs when `B` fails); `A && var=x || var=y`
   is fine since assignments don't fail.
+- **Dry-run checks:** `[[ -n $MODE_DRY_RUN ]]` / `[[ -z ]]`, never
+  `(( MODE_DRY_RUN ))` — arithmetic evaluation reads a hand-set non-numeric
+  value (`MODE_DRY_RUN=true`) as false, so the guards run wet while `log.zsh`
+  (which checks `[[ -n ]]`) still prints `[DRY_RUN]` on every line.
 - **Exit codes:** `EXIT_CODES_DESCRIPTION` (assoc) is rendered by `_h.zsh`;
   assign custom codes starting at 10 before sourcing it. Use `wrong_usage "msg"`
   for arg-validation errors (exit 2); `log_fatal "msg" <code>` for runtime

@@ -40,19 +40,22 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
 know which lines are destructive, so guard the side effects yourself:
 
 ```zsh
-if (( MODE_DRY_RUN )); then
-    log_info "Would remove $f"
+if [[ -n $MODE_DRY_RUN ]]; then
+    log_info "rm $f"
 else
     rm "$f"
 fi
 ```
 
-`(( MODE_DRY_RUN ))` is false when the flag is absent (an unset variable is
-arithmetic zero) and true once `n.zsh` sets it, so it needs no default; the
-short form `(( MODE_DRY_RUN )) && exit 0` bails early. And because the `log_*`
-family prefixes `[DRY_RUN]` to every line whenever `MODE_DRY_RUN` is set, a dry
-run reads back as a labeled transcript of what a real run would do — no extra
-wiring.
+Check it with `[[ -n $MODE_DRY_RUN ]]` (`[[ -z ]]` for the wet path) — the flag
+is set-or-unset, and this matches both how `n.zsh` sets it and how `log_*`
+reads it. Don't use `(( MODE_DRY_RUN ))`: it evaluates the *value* as
+arithmetic, and the variable is exported precisely so that child scripts and
+humans can set it by hand — a natural `MODE_DRY_RUN=true` reads as *false*
+there (zsh resolves `true` as an unset variable name), so the guarded commands
+run wet while `log_*` still prefixes every line `[DRY_RUN]`. Log the bare
+command, and a dry run reads back as a labeled transcript of what a real run
+would do — no extra wiring.
 
 ## Testing
 
