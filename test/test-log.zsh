@@ -9,6 +9,7 @@
 #   4. log_fatal exits with the specified code
 #   5. Log output includes script name in brackets
 #   6. Color only when stderr is a TTY and NO_COLOR is unset
+#   7. LOG_TIMESTAMP renders a timestamp (via the %D prompt escape)
 
 setopt err_exit
 
@@ -150,6 +151,14 @@ assert_contains "tty output has ANSI" "$output" "$esc"
 zpty log_nocolor env NO_COLOR=1 VERBOSITY=0 "$test_script"
 output=$(read_pty log_nocolor)
 assert_not_contains "NO_COLOR suppresses ANSI on a tty" "$output" "$esc"
+
+# ── Test 7: LOG_TIMESTAMP renders a timestamp ───────────────────────
+
+log_info "── Test 7: LOG_TIMESTAMP ──"
+
+output=$(LOG_TIMESTAMP=1 VERBOSITY=0 "$test_script" 2>&1) || true
+assert_contains "timestamped header" "$output" \
+    '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}'
 
 # ── Summary ─────────────────────────────────────────────────────────
 

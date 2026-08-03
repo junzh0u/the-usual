@@ -18,7 +18,9 @@ source ${${(%):-%x}:A:h}/utils.zsh
 : ${LOG_SCRIPT_NAME=1}
 function log_header {
     [[ -n "$MODE_DRY_RUN" ]] && print -n "[DRY_RUN] "
-    [[ -n "$LOG_TIMESTAMP" ]] && print -n "$(date "+%Y-%m-%d %H:%M:%S") "
+    # %D{fmt} renders when _log_print feeds the header through print -P —
+    # the current time with no date(1) fork
+    [[ -n "$LOG_TIMESTAMP" ]] && print -n "%D{%Y-%m-%d %H:%M:%S} "
     [[ -n "$LOG_SCRIPT_NAME" ]] && print -n "[$(current_script_name)] "
 }
 
