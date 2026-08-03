@@ -64,7 +64,9 @@ rule is written (and fixed) exactly once.
   without printing anything — the-usual's own test suite sets it, so
   `(( failures++ ))` would swallow the first failing assertion and everything
   after it. Use `(( ++n ))`, which evaluates to the new value and stays truthy
-  while counting up.
+  while counting up. The same trap applies to any `(( ))` whose value can be
+  zero — `(( x = a - b ))` as a statement exits 1 when the result is 0; write
+  `x=$(( a - b ))` instead (a plain assignment always exits 0).
 - `trap ... EXIT` set **inside a function** is function-scoped — it fires when
   that function returns, and a callee's `trap - EXIT` cannot clear its caller's.
   Never split trap-set and trap-clear across functions; clean up explicitly on

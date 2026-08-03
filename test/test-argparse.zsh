@@ -13,6 +13,7 @@
 #   8. -h/--help prints usage and exits 0
 #   9. Unsupported flags exit 2 with error message
 #  10. wrong_usage prints error message before usage
+#  11. Sourcing qv.zsh at VERBOSITY=0 survives err_exit
 
 setopt err_exit
 
@@ -164,6 +165,17 @@ assert_output_contains "--invalid shows bad option error" "$output" "bad option"
 
 output=$(run_test -x 2>&1) && exit_code=$? || exit_code=$?
 assert_exit_code "-x exits 2" 2 $exit_code
+
+# ── Test 11: sourcing qv.zsh at VERBOSITY=0 under err_exit ──────────
+# The computed verbosity must never be the exit status of a bare (( ))
+# statement — verbosity 0 would abort an err_exit caller mid-source.
+
+output=$(VERBOSITY=0 zsh -c "
+    setopt err_exit
+    source $the_usual/argparse/_init.zsh
+    source $the_usual/argparse/qv.zsh
+    print survived" 2>&1) || true
+assert_output_contains "qv.zsh at VERBOSITY=0 survives err_exit" "$output" "survived"
 
 # ── Summary ─────────────────────────────────────────────────────────
 
