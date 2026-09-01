@@ -15,7 +15,7 @@ Extracted from my dotfiles, where it's vendored as a git submodule at `.config/z
 - `mutex.zsh` — `mutex` / `try_mutex`, a coprocess-held lock.
 - `coreutils.zsh` — fork-free file/time helpers backed by zsh builtins (`file_size`, `file_mtime`, `format_epoch`, `parse_date`, `epoch_*_ago`).
 - `debug.zsh` — `inspect`, a one-call dump of a var / array / assoc.
-- `test/` — automated tests; `test/manual/` fixtures.
+- `test/` — automated tests; `test/manual/` fixtures. A suite that can't run in the current environment prints the reason and exits 77 (the automake/Meson skip code); `just test` and consuming repos' runners report it as skipped, not failed.
 
 ## Path independence
 

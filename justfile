@@ -9,13 +9,17 @@ set shell := ['zsh', '-c']
 default:
     @just --list
 
-# Run the automated test suite (test/test-*.zsh)
+# Run the automated test suite (test/test-*.zsh). A suite that exits 77
+# skipped itself (reason on stdout) and doesn't count as a failure.
 test:
-    @typeset -i failures=0; \
+    @typeset -i failures=0 rc=0; \
     for t in {{ justfile_directory() }}/test/test-*.zsh; do \
         print -P "%F{blue}━━ ${t:t} ━━%f"; \
-        if zsh "$t"; then \
+        rc=0; zsh "$t" || rc=$?; \
+        if (( rc == 0 )); then \
             print -P "%F{green}✓ ${t:t}%f"; \
+        elif (( rc == 77 )); then \
+            print -P "%F{yellow}∅ ${t:t} skipped%f"; \
         else \
             print -P "%F{red}✗ ${t:t}%f"; \
             (( ++failures )); \

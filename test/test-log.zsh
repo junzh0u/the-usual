@@ -13,6 +13,16 @@
 
 setopt err_exit
 
+# The TTY branches (Test 6) need zpty to open a pty, which a container or a
+# CI runner may not allow. Exit 77 = skipped, reason on stdout. This skip is
+# only ever legitimate for a sandbox: a real host that cannot allocate a pty
+# is itself broken (no ssh logins, no tmux), so treat an unexpected skip as
+# a signal.
+if ! zsh -fc 'zmodload zsh/zpty && zpty _probe true' 2>/dev/null; then
+    print -- "no usable pty"
+    exit 77
+fi
+
 the_usual=${${(%):-%x}:A:h:h}  # the-usual repo root
 
 export VERBOSITY=${VERBOSITY:-1}
