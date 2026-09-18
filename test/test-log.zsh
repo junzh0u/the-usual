@@ -4,8 +4,8 @@
 #
 # Tests:
 #   1. At verbosity 0: only base log functions produce output
-#   2. At verbosity 1: _v variants also appear
-#   3. At verbosity 2: _vv variants also appear
+#   2. At verbosity 1: _v variants also appear, tagged [v]
+#   3. At verbosity 2: _vv variants also appear, tagged [vv]
 #   4. log_fatal exits with the specified code
 #   5. Log output includes script name in brackets
 #   6. Color only when stderr is a TTY and NO_COLOR is unset
@@ -109,6 +109,9 @@ assert_not_contains "log_warning_vv hidden" "$output" "log_warning_vv"
 assert_contains     "log_error_v shown"     "$output" "log_error_v$"
 assert_not_contains "log_error_vv hidden"   "$output" "log_error_vv"
 
+assert_contains     "_v header tagged [v]"  "$output" '\[v\] log_info_v$'
+assert_not_contains "base header untagged"  "$output" '\[v+\] log_info$'
+
 # ── Test 3: Verbosity 2 — _vv variants appear ──────────────────────
 
 log_info "── Test 3: Verbosity 2 ──"
@@ -119,6 +122,9 @@ assert_contains "log_success_vv shown" "$output" "log_success_vv"
 assert_contains "log_info_vv shown"    "$output" "log_info_vv"
 assert_contains "log_warning_vv shown" "$output" "log_warning_vv"
 assert_contains "log_error_vv shown"   "$output" "log_error_vv"
+
+assert_contains "_vv header tagged [vv]" "$output" '\[vv\] log_info_vv$'
+assert_contains "_v header still [v]"    "$output" '\[v\] log_info_v$'
 
 # ── Test 4: log_fatal exits with specified code ─────────────────────
 

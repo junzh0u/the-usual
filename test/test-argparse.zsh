@@ -6,7 +6,7 @@
 #   1. Combined short flags are expanded (-vv → -v -v)
 #   2. -- stops flag expansion
 #   3. -n/--dry-run sets MODE_DRY_RUN=1
-#   4. -v/--verbose increments VERBOSITY, -q/--quiet decrements, -vv gives 2
+#   4. -v/--verbose increments VERBOSITY, -q/--quiet decrements, -v and up announce the level
 #   5. -y/--yes sets YES_OR_NO_ANSWER=y
 #   6. Long flags work (--verbose, --dry-run, --yes, --quiet)
 #   7. Remaining positional args are preserved
@@ -106,6 +106,13 @@ assert_output_contains "--verbose sets VERBOSITY to 1" "$output" "VERBOSITY.*: 1
 
 output=$(run_test -vv 2>&1)
 assert_output_contains "-vv sets VERBOSITY to 2" "$output" "VERBOSITY.*: 2"
+assert_output_contains "-vv announces its level" "$output" '\[v\] Verbosity: 2$'
+
+output=$(run_test -v 2>&1)
+assert_output_contains "-v announces its level" "$output" '\[v\] Verbosity: 1$'
+
+output=$(run_test 2>&1)
+assert_output_not_contains "verbosity 0 stays silent about its level" "$output" "Verbosity:"
 
 output=$(run_test -q 2>&1)
 assert_output_contains "-q from 0 stays at 0 (clamped)" "$output" "VERBOSITY.*: 0"

@@ -4,6 +4,8 @@
 #
 # Reads $VERBOSITY (default 0) to gate the _v/_vv/_vvv variants, and
 # $MODE_DRY_RUN / $LOG_TIMESTAMP / $LOG_SCRIPT_NAME to decorate the header.
+# A gated variant also tags its header with its own level ([v], [vv], [vvv])
+# so a -vv transcript shows which lines the quieter run would have dropped.
 # Severity colors apply only when stderr is a terminal and $NO_COLOR is unset
 # (https://no-color.org) — logs redirected to a file stay plain.
 #
@@ -22,6 +24,8 @@ function log_header {
     # the current time with no date(1) fork
     [[ -n "$LOG_TIMESTAMP" ]] && print -n "%D{%Y-%m-%d %H:%M:%S} "
     [[ -n "$LOG_SCRIPT_NAME" ]] && print -n "[$(current_script_name)] "
+    # set by the _v/_vv/_vvv wrappers below; reaches here via dynamic scoping
+    [[ -n "$_log_vees" ]] && print -n "[$_log_vees] "
 }
 
 function _log_print {
@@ -40,8 +44,8 @@ function log_{success,info,warning,error} {
 }
 
 function log_{success,info,warning,error}_{v,vv,vvv} {
-    local vees=${0##*_}
-    (( VERBOSITY >= $#vees )) || return 1
+    local _log_vees=${0##*_}
+    (( VERBOSITY >= $#_log_vees )) || return 1
     ${0%_v*} $*
 }
 
