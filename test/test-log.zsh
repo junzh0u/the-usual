@@ -8,7 +8,7 @@
 #   3. At verbosity 2: _vv variants also appear, tagged [vv]
 #   4. log_fatal exits with the specified code
 #   5. Log output includes script name in brackets
-#   6. Color only when stderr is a TTY and NO_COLOR is unset
+#   6. Color only when stderr is a TTY and NO_COLOR is unset; gated lines faint there
 #   7. LOG_TIMESTAMP renders a timestamp (via the %D prompt escape)
 
 setopt err_exit
@@ -163,6 +163,12 @@ read_pty() {
 zpty log_tty env VERBOSITY=0 "$test_script"
 output=$(read_pty log_tty)
 assert_contains "tty output has ANSI" "$output" "$esc"
+assert_not_contains "ungated lines are not faint" "$output" "$esc\[2m"
+
+zpty log_tty_v env VERBOSITY=1 "$test_script"
+output=$(read_pty log_tty_v)
+assert_contains "gated line is faint on a tty" "$output" "$esc\[2m.*\[test-log\] \[v\] log_info_v"
+assert_not_contains "ungated line stays full intensity" "$output" "$esc\[2m.*\[test-log\] log_info"
 
 zpty log_nocolor env NO_COLOR=1 VERBOSITY=0 "$test_script"
 output=$(read_pty log_nocolor)

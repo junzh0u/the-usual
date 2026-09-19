@@ -7,7 +7,8 @@
 # A gated variant also tags its header with its own level ([v], [vv], [vvv])
 # so a -vv transcript shows which lines the quieter run would have dropped.
 # Severity colors apply only when stderr is a terminal and $NO_COLOR is unset
-# (https://no-color.org) — logs redirected to a file stay plain.
+# (https://no-color.org) — logs redirected to a file stay plain. There a gated
+# line also renders faint, so the default-level lines stand out of a -v wall.
 #
 # One body, many names: each family below is a single function defined under
 # every generated name, dispatching on the name it was called by ($0) —
@@ -32,7 +33,10 @@ function _log_print {
     local color=$1
     shift
     if [[ -t 2 && -z $NO_COLOR ]]; then
-        print -P "%F{$color}$(log_header)$*%f" >&2
+        # SGR 2/22 — print -P has no prompt escape for faint
+        local faint= unfaint=
+        [[ -n $_log_vees ]] && faint=$'\e[2m' unfaint=$'\e[22m'
+        print -P "$faint%F{$color}$(log_header)$*%f$unfaint" >&2
     else
         print -P "$(log_header)$*" >&2
     fi
