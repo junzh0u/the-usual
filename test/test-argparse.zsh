@@ -6,7 +6,7 @@
 #   1. Combined short flags are expanded (-vv → -v -v)
 #   2. -- stops flag expansion
 #   3. -n/--dry-run sets MODE_DRY_RUN=1
-#   4. -v/--verbose increments VERBOSITY, -q/--quiet decrements, -v and up announce the level
+#   4. -v/--verbose increments VERBOSITY, -q/--quiet decrements; the top-level script announces its level, a child only a level its flags changed
 #   5. -y/--yes sets YES_OR_NO_ANSWER=y
 #   6. Long flags work (--verbose, --dry-run, --yes, --quiet)
 #   7. Remaining positional args are preserved
@@ -23,8 +23,12 @@ source $the_usual/argparse/_init.zsh
 export VERBOSITY=${VERBOSITY:-1}
 source $the_usual/argparse/qv.zsh
 
+# TEST_ANNOUNCED unset simulates a top-level run; set, a child of a script
+# that announced that level. Always passed explicitly — sourcing qv.zsh above
+# exported this suite's own VERBOSITY_ANNOUNCED
 run_test() {
-    VERBOSITY=${TEST_VERBOSITY:-0} "$the_usual/test/manual/test-argparse.zsh" $@
+    VERBOSITY=${TEST_VERBOSITY:-0} VERBOSITY_ANNOUNCED=$TEST_ANNOUNCED \
+        "$the_usual/test/manual/test-argparse.zsh" $@
 }
 failures=0
 
@@ -122,6 +126,23 @@ assert_output_contains "--quiet from 0 stays at 0 (clamped)" "$output" "VERBOSIT
 
 output=$(TEST_VERBOSITY=2 run_test -q 2>&1)
 assert_output_contains "-q from 2 gives 1" "$output" "VERBOSITY.*: 1"
+assert_output_contains "-q announces the level it lowered to" "$output" '\[v\] Verbosity: 1$'
+
+output=$(TEST_VERBOSITY=1 run_test 2>&1)
+assert_output_contains "top-level script announces a hand-set VERBOSITY" "$output" '\[v\] Verbosity: 1$'
+
+output=$(TEST_VERBOSITY=1 TEST_ANNOUNCED=1 run_test 2>&1)
+assert_output_contains "inherited VERBOSITY is kept" "$output" "VERBOSITY.*: 1"
+assert_output_not_contains "child does not re-announce an inherited level" "$output" "Verbosity:"
+
+output=$(TEST_VERBOSITY=1 TEST_ANNOUNCED=1 run_test -v -q 2>&1)
+assert_output_not_contains "child flags that cancel out are not announced" "$output" "Verbosity:"
+
+output=$(TEST_VERBOSITY=1 TEST_ANNOUNCED=1 run_test -v 2>&1)
+assert_output_contains "child announces a level its flags raised" "$output" '\[v\] Verbosity: 2$'
+
+output=$(TEST_VERBOSITY=0 TEST_ANNOUNCED=0 run_test -vv 2>&1)
+assert_output_contains "child of a quiet parent announces when raising the level" "$output" '\[v\] Verbosity: 2$'
 
 # ── Test 5: -y sets YES_OR_NO_ANSWER ────────────────────────────────
 
