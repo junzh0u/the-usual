@@ -12,6 +12,10 @@ setopt err_exit
 
 the_usual=${${(%):-%x}:A:h:h}  # the-usual repo root
 
+# A calling script run with -y exports this; inherited, it
+# answers every prompt below, including the expect-driven interactive ones.
+unset YES_OR_NO_ANSWER
+
 source $the_usual/argparse/_init.zsh
 export VERBOSITY=${VERBOSITY:-1}
 source $the_usual/argparse/qv.zsh
