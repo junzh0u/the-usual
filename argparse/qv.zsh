@@ -21,9 +21,8 @@ export VERBOSITY
 # announces (flags or a hand-set $VERBOSITY alike), a child that merely
 # inherits the level stays silent — one forked per file would otherwise
 # repeat it on every call — and a child whose flags change it announces
-# again. An if, not log_info_v's own gate or an && list: either would leave
-# 1 as this file's (so source's) status at verbosity 0 and kill an err_exit
-# caller
+# again. An if, not an && list: that would leave 1 as this file's (so
+# source's) status at verbosity 0 and kill an err_exit caller
 if (( VERBOSITY && VERBOSITY != ${VERBOSITY_ANNOUNCED:-0} )); then
     log_info_v "Verbosity: $VERBOSITY"
 fi

@@ -10,6 +10,7 @@
 #   5. Log output includes script name in brackets
 #   6. Color only when stderr is a TTY and NO_COLOR is unset; gated lines faint there
 #   7. LOG_TIMESTAMP renders a timestamp (via the %D prompt escape)
+#   8. A silenced _v variant returns 0 (safe under err_exit)
 
 setopt err_exit
 
@@ -181,6 +182,15 @@ log_info "── Test 7: LOG_TIMESTAMP ──"
 output=$(LOG_TIMESTAMP=1 VERBOSITY=0 "$test_script" 2>&1) || true
 assert_contains "timestamped header" "$output" \
     '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}'
+
+# ── Test 8: a silenced _v variant returns 0 ─────────────────────────
+
+log_info "── Test 8: silenced _v returns 0 ──"
+
+VERBOSITY=0 zsh -c "setopt err_exit; source $the_usual/log.zsh
+    f() { log_info_v hidden }; f; log_warning_vvv hidden" \
+    && exit_code=$? || exit_code=$?
+assert_exit_code "silenced _v survives err_exit" 0 $exit_code
 
 # ── Summary ─────────────────────────────────────────────────────────
 
