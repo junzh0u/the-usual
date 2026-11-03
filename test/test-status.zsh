@@ -7,9 +7,10 @@
 #   2. Control characters in msg become spaces; no msg means no msg key
 #   3. NO_PROGRAM_STATUS and an unwritable target report nothing, still succeed
 #   4. A calling script's ownership leaves the root record alone; prompts still report
-#   5. status_track reports done or error at exit, never for subshells, and not
+#   5. Root reports, and only those, also go to PROGRAM_STATUS_LAST
+#   6. status_track reports done or error at exit, never for subshells, and not
 #      over an explicit done
-#   6. yes_or_no reports nothing when answered by YES_OR_NO_ANSWER
+#   7. yes_or_no reports nothing when answered by YES_OR_NO_ANSWER
 
 setopt err_exit
 
@@ -79,7 +80,17 @@ assert_eq "a nested prompt still reports" "${esc}state=blocked:kind=question:id=
 report 'status_working; zsh -c "[[ \$PROGRAM_STATUS_OWNER == $$ ]]" && print -n ok > '$sandbox/child >/dev/null
 assert_eq "the first reporter exports ownership to its children" "ok" "$(<$sandbox/child)"
 
-# 5. status_track
+# 5. PROGRAM_STATUS_LAST: root reports only, the last one replacing the others
+last=$sandbox/last
+PROGRAM_STATUS_LAST=$last report 'status_working; status_ask "Go?"; status_answered; status_done "All moved"' >/dev/null
+assert_eq "last root report goes to PROGRAM_STATUS_LAST" "state=done:app=tracked:msg=$(b64 'All moved')" "$(<$last)"
+rm -f $last
+PROGRAM_STATUS_LAST=$last report 'status_ask "Go?"; status_answered' >/dev/null
+assert_eq "prompt records leave PROGRAM_STATUS_LAST alone" "absent" "$([[ -e $last ]] && print present || print absent)"
+PROGRAM_STATUS_LAST=$last PROGRAM_STATUS_OWNER=1 report 'status_done' >/dev/null
+assert_eq "a caller's ownership leaves PROGRAM_STATUS_LAST alone" "absent" "$([[ -e $last ]] && print present || print absent)"
+
+# 6. status_track
 assert_eq "track: done at exit 0" "${esc}state=working:app=tracked$st${esc}state=done:app=tracked$st" \
     "$(report 'status_track')"
 assert_eq "track: error at a failing exit" \
@@ -98,7 +109,7 @@ assert_eq "track: working again after done reports at exit" \
     "${esc}state=working:app=tracked$st${esc}state=done:app=tracked$st${esc}state=working:app=tracked$st${esc}state=error:app=tracked:msg=$(b64 'Exited with 1')$st" \
     "$(report 'status_track; status_done; status_working; false; exit')"
 
-# 6. yes_or_no answered without a prompt
+# 7. yes_or_no answered without a prompt
 assert_eq "preset answer reports nothing" "" \
     "$(report "source $the_usual/argparse/_init.zsh; source $the_usual/argparse/y.zsh; YES_OR_NO_ANSWER=y yes_or_no 'Go?'")"
 

@@ -18,6 +18,11 @@
 # OSC 7501 discard it. NO_PROGRAM_STATUS=1 turns reporting off;
 # PROGRAM_STATUS_TTY sends it elsewhere (tests).
 #
+# An interactive shell that reports each command's state itself names a file
+# in PROGRAM_STATUS_LAST; every root report is also written there, replacing
+# the last, so the shell sees the script reported for itself and leaves its
+# record alone at the next prompt.
+#
 # One script owns the pane's root record: the first to report exports
 # PROGRAM_STATUS_OWNER, and scripts it runs leave the root record alone, so a
 # nested script's done can't hide its caller still working. A prompt uses a
@@ -45,6 +50,9 @@ function _status_emit {
         pairs+=":msg=$(print -rn -- $msg | base64 | tr -d '\n')"
     fi
     { print -rn -- $'\e]7501;'$pairs$'\e\\' >> ${PROGRAM_STATUS_TTY:-/dev/tty} } 2> /dev/null
+    if [[ -n ${PROGRAM_STATUS_LAST:-} && $pairs != *:id=* ]]; then
+        { print -r -- $pairs >| $PROGRAM_STATUS_LAST } 2> /dev/null
+    fi
     return 0
 }
 

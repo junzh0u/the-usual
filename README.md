@@ -37,7 +37,10 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
   script's state (working, blocked, done, error) to the terminal as OSC 7501,
   the [Program Status Protocol](https://www.superlogical.com/rex/docs/build/program-status.md),
   so a terminal that speaks it can show progress and confirm before closing a
-  busy pane. `yes_or_no` reports its prompt as waiting on the user.
+  busy pane. `yes_or_no` reports its prompt as waiting on the user. Under a
+  shell that reports each command itself, the script also writes its last root
+  report to the file named by `PROGRAM_STATUS_LAST`, so the shell leaves the
+  script's record alone.
 
 ## Dry-run
 
