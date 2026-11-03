@@ -33,6 +33,11 @@ work. It's the boilerplate I always reach for, factored out of my dotfiles.
   differences (`file_size`, etc.).
 - **`debug.zsh`** — `inspect`, a one-call dump of a variable, array, or
   associative array.
+- **`status.zsh`** — `status_track` and the `status_*` family report the
+  script's state (working, blocked, done, error) to the terminal as OSC 7501,
+  the [Program Status Protocol](https://www.superlogical.com/rex/docs/build/program-status.md),
+  so a terminal that speaks it can show progress and confirm before closing a
+  busy pane. `yes_or_no` reports its prompt as waiting on the user.
 
 ## Dry-run
 

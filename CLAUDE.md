@@ -15,6 +15,7 @@ Extracted from my dotfiles, where it's vendored as a git submodule at `.config/z
 - `mutex.zsh` — `mutex` / `try_mutex`, a coprocess-held lock.
 - `coreutils.zsh` — fork-free file/time helpers backed by zsh builtins (`file_size`, `file_mtime`, `format_epoch`, `parse_date`, `epoch_*_ago`).
 - `debug.zsh` — `inspect`, a one-call dump of a var / array / assoc.
+- `status.zsh` — `status_track` and `status_{working,blocked,done,error,idle,ask,answered}`, OSC 7501 state reports to `/dev/tty`.
 - `test/` — automated tests; `test/manual/` fixtures. A suite that can't run in the current environment prints the reason and exits 77 (the automake/Meson skip code); `just test` and consuming repos' runners report it as skipped, not failed.
 
 ## Path independence
@@ -70,6 +71,7 @@ zparseopts -D -E -K {H,-host}:=ARG_HOST
 
 - **`coreutils.zsh`** — helpers are zsh builtins (`zsh/stat`, `zsh/datetime`), no fork per call — except `parse_date` (ISO-8601 input only), which forks `date(1)`: glibc's `strftime -r` ignores the parsed `%z` offset. `epoch_*_ago` subtract fixed 3600/86400-second units, not calendar days.
 - **`concurrency.zsh`** — after each `&`, call `wait_if_too_many_jobs`; finish with `wait`. `MAX_CONCURRENCY = 2 × ncpu`.
+- **`status.zsh`** — `status_track` reports done or error from a `zshexit` hook, not `trap EXIT`, so it never touches the script's own EXIT trap; the hook checks `$sysparams[pid]` because subshells and background jobs run `zshexit` too. Only the first script to report owns the pane's root record (`PROGRAM_STATUS_OWNER`, exported); nested scripts' root reports are no-ops, while `status_ask` uses its own `prompt-<pid>` record and always reports. Tests point `PROGRAM_STATUS_TTY` at a file.
 - **`mutex.zsh`** — `mutex <name>` spawns a coprocess to hold the lock. If the script also runs parallel jobs, wrap them in `( ... )` so the script-level `wait` doesn't block on the mutex coprocess.
 
 ## Testing
